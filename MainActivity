@@ -1,0 +1,78 @@
+package com.example.autocompletetextviewremotedata;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+import android.widget.Adapter;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity {
+
+    AutoCompleteTextView autoCompleteTextView;
+    String url="https://api.npoint.io/7ad9e01971be6f41aac6";
+    ArrayList<String> MyArrayList;
+    ArrayAdapter adapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        autoCompleteTextView=(AutoCompleteTextView)findViewById(R.id.autoCompleteTextId);
+        MyArrayList =new ArrayList<>();
+        adapter=new ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line,MyArrayList);
+        loadData();
+    }
+
+    public void loadData(){
+
+        StringRequest stringRequest=new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+
+                try {
+
+                    JSONObject jsonObject=new JSONObject(response);
+                    JSONArray jsonArray=jsonObject.getJSONArray("MyData");
+                    for(int i=0;i<jsonArray.length();i++){
+                        JSONObject recieve=jsonArray.getJSONObject(i);
+                        MyArrayList.add(recieve.getString("CountyList"));
+                    }
+
+                    autoCompleteTextView.setThreshold(1);
+                    autoCompleteTextView.setAdapter(adapter);
+
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(MainActivity.this,"Server Error",Toast.LENGTH_SHORT).show();
+            }
+        }
+        );
+
+        RequestQueue queue= Volley.newRequestQueue(this);
+        queue.add(stringRequest);
+
+    }
+
+}
